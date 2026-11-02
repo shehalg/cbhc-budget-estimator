@@ -98,6 +98,8 @@ details.acc>summary::-webkit-details-marker{display:none}
 details.acc>summary .sum{margin-left:auto;font-size:14px;font-weight:700;color:var(--teal);background:var(--teal-wash);padding:4px 12px;border-radius:999px;white-space:nowrap}
 details.acc>summary::after{content:"";width:9px;height:9px;border-right:2.5px solid var(--brand);border-bottom:2.5px solid var(--brand);transform:rotate(45deg);margin:0 4px 4px 4px;flex:none;transition:transform .2s}
 details.acc[open]>summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+.strip{background:var(--teal-wash);color:var(--teal);border-radius:12px;padding:11px 16px;margin-bottom:14px;font-weight:700;font-size:15px}
+.strip.empty{background:var(--warn-wash);color:var(--warn)}
 .tabs{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .tab{font:inherit;cursor:pointer;flex:1 1 150px;text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;color:var(--head);font-weight:800;font-size:15.5px;display:flex;flex-direction:column;gap:2px}
 .tab small{font-weight:700;font-size:13px;color:var(--teal)}
@@ -223,6 +225,7 @@ footer.f{margin-top:28px;font-size:13.5px;color:var(--muted);max-width:80ch}
 <section class="pane" id="p3" hidden>
   <h2>Step 3: Select services</h2>
   <p class="d">Pick a category tab, then enter hours per week in each rate band. The CBH rate is under each box. Most selected services have a two-hour minimum booking, so check the pricing schedule.</p>
+  <div class="strip" id="strip"></div>
   <div id="accs"></div>
 </section>
 
@@ -365,7 +368,7 @@ CATS.forEach(function(c,ci){
     if(s[3]!==grp){grp=s[3];ah+='<tr class="gr"><td colspan="7">'+grp+'</td></tr>'}
     ah+='<tr id="r'+i+'"><td class="nm">'+s[0]+'</td>';
     for(var b=0;b<5;b++){
-      ah+='<td>'+(s[2][b]==null?'<small class="rt">N/A</small>':'<input type="number" min="0" step="0.5" id="h'+i+'_'+b+'" value="'+ex[b]+'" aria-label="'+s[0]+', '+BANDS[b]+' hours"><small class="rt">'+fm(s[2][b])+'</small>')+'</td>';
+      ah+='<td>'+(s[2][b]==null?'<small class="rt">N/A</small>':'<input type="number" min="0" step="0.5" id="h'+i+'_'+b+'" value="'+(ex[b]||"")+'" placeholder="0" inputmode="decimal" aria-label="'+s[0]+', '+BANDS[b]+' hours"><small class="rt">'+fm(s[2][b])+'</small>')+'</td>';
     }
     ah+='<td class="v" id="g'+i+'">$0.00</td></tr>';});
   ah+='</tbody></table></div></div>';
@@ -422,6 +425,9 @@ function calc(){
   else txt="The plan fits the quarter with room left. Confirm against the live budget in TurnPoint before committing.";
   if(ank!==null&&Math.abs(ank-gross)>=1)txt+=" The Ankoora roster does not match this plan, so check which one is right.";
   m.textContent=txt;
+  var st3=$("strip");
+  if(lines.length===0){st3.className="strip empty";st3.textContent="No hours entered yet, so every cost shows $0. Type hours per week into the boxes below (for example 4 under Standard) and the cost appears.";}
+  else{st3.className="strip";st3.textContent="Plan so far: "+money(gov)+" a week from the budget, across "+lines.length+" service"+(lines.length>1?"s":"")+". Other tabs may hold more.";}
   last={lvl:state.level+1,interim:interim,q:q,cm:cm,net:net,spent:spent,rem:rem,weeks:weeks,gov:gov,cli:cli,proj:proj,head:head,lines:lines,ank:ank,gross:gross};
 }
 function summary(){
@@ -444,7 +450,7 @@ $("reset").addEventListener("click",function(){
   var r=document.querySelector('input[name=lvl][value="3"]');if(r)r.checked=true;
   $("weeks").value=13;$("spent").value=0;$("interim").checked=false;$("ank").value="";
   CATS.forEach(function(c){$("ap_"+c.id).checked=true;if(!c.fixed)$("pc_"+c.id).value=c.def});
-  SVC.forEach(function(s,i){for(var b=0;b<5;b++){var e=$("h"+i+"_"+b);if(e)e.value=0}});
+  SVC.forEach(function(s,i){for(var b=0;b<5;b++){var e=$("h"+i+"_"+b);if(e)e.value=""}});
   $("fb").hidden=true;go(1);calc();
 });
 
